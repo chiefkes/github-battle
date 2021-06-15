@@ -8,6 +8,7 @@ import {
 } from "react-icons/fa";
 import Results from "./Results";
 import { ThemeConsumer } from "../contexts/theme";
+import { Link } from "react-router-dom";
 
 function Instructions() {
   return (
@@ -48,28 +49,26 @@ function Instructions() {
 }
 
 class PlayerInput extends Component {
-  constructor(props) {
-    super(props);
+  state = {
+    username: "",
+  };
 
-    this.state = {
-      username: "",
-    };
+  static propTypes = {
+    onSubmit: PropTypes.func.isRequired,
+    label: PropTypes.string.isRequired,
+  };
 
-    this.handleSubmit = this.handleSubmit.bind(this);
-    this.handleChange = this.handleChange.bind(this);
-  }
-
-  handleSubmit(event) {
+  handleSubmit = (event) => {
     event.preventDefault();
 
     this.props.onSubmit(this.state.username);
-  }
+  };
 
-  handleChange(event) {
+  handleChange = (event) => {
     this.setState({
       username: event.target.value,
     });
-  }
+  };
 
   render() {
     return (
@@ -103,11 +102,6 @@ class PlayerInput extends Component {
     );
   }
 }
-
-PlayerInput.propTypes = {
-  onSubmit: PropTypes.func.isRequired,
-  label: PropTypes.string.isRequired,
-};
 
 function PlayerPreview({ username, onReset, label }) {
   return (
@@ -144,98 +138,73 @@ PlayerPreview.propTypes = {
 };
 
 export default class Battle extends Component {
-  constructor(props) {
-    super(props);
+  state = {
+    playerOne: null,
+    playerTwo: null,
+  };
 
-    this.state = {
-      playerOne: null,
-      playerTwo: null,
-      battle: false,
-    };
-
-    this.handleSubmit = this.handleSubmit.bind(this);
-    this.handleReset = this.handleReset.bind(this);
-  }
-
-  handleSubmit(id, player) {
+  handleSubmit = (id, player) => {
     this.setState({
       [id]: player,
     });
-  }
+  };
 
-  handleReset(id) {
+  handleReset = (id) => {
     this.setState({
       [id]: null,
     });
-  }
+  };
 
   render() {
-    const { playerOne, playerTwo, battle } = this.state;
+    const { playerOne, playerTwo } = this.state;
 
-    if (battle === true) {
-      return (
-        //
-        <Results
-          playerOne={playerOne}
-          playerTwo={playerTwo}
-          onReset={() =>
-            this.setState({
-              playerOne: null,
-              playerTwo: null,
-              battle: false,
-            })
-          }
-        />
-      );
-    } else
-      return (
-        <>
-          <Instructions />
+    return (
+      <>
+        <Instructions />
 
-          <div className="players-container">
-            <h1 className="center-text header-lg">Players</h1>
-            <div className="row space-around">
-              {playerOne === null ? (
-                <PlayerInput
-                  label="Player One"
-                  onSubmit={(player) => this.handleSubmit("playerOne", player)}
-                />
-              ) : (
-                <PlayerPreview
-                  username={playerOne}
-                  label="Player One"
-                  onReset={() => this.handleReset("playerOne")}
-                />
-              )}
+        <div className="players-container">
+          <h1 className="center-text header-lg">Players</h1>
+          <div className="row space-around">
+            {playerOne === null ? (
+              <PlayerInput
+                label="Player One"
+                onSubmit={(player) => this.handleSubmit("playerOne", player)}
+              />
+            ) : (
+              <PlayerPreview
+                username={playerOne}
+                label="Player One"
+                onReset={() => this.handleReset("playerOne")}
+              />
+            )}
 
-              {playerTwo === null ? (
-                <PlayerInput
-                  label="Player Two"
-                  onSubmit={(player) => this.handleSubmit("playerTwo", player)}
-                />
-              ) : (
-                <PlayerPreview
-                  username={playerTwo}
-                  label="Player Two"
-                  onReset={() => this.handleReset("playerTwo")}
-                />
-              )}
-            </div>
-
-            {playerOne && playerTwo && (
-              <button
-                className="btn dark-btn btn-space"
-                onClick={() =>
-                  this.setState({
-                    battle: true,
-                  })
-                }
-              >
-                Battle
-              </button>
+            {playerTwo === null ? (
+              <PlayerInput
+                label="Player Two"
+                onSubmit={(player) => this.handleSubmit("playerTwo", player)}
+              />
+            ) : (
+              <PlayerPreview
+                username={playerTwo}
+                label="Player Two"
+                onReset={() => this.handleReset("playerTwo")}
+              />
             )}
           </div>
-        </>
-      );
+
+          {playerOne && playerTwo && (
+            <Link
+              className="btn dark-btn btn-space"
+              to={{
+                pathname: "/battle/results",
+                search: `?playerOne=${playerOne}&playerTwo=${playerTwo}`,
+              }}
+            >
+              Battle
+            </Link>
+          )}
+        </div>
+      </>
+    );
   }
 }
