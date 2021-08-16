@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { Component, useReducer, useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import { fetchPopularRepos } from "../utils/api";
 import {
@@ -85,6 +85,78 @@ ReposGrid.propTypes = {
   repos: PropTypes.array.isRequired,
 };
 
+const popularReducer = (state, action) => {
+  switch (action.type) {
+    case "success":
+      return {
+        error: null,
+        repos: {
+          ...state.repos,
+          [action.selectedLanguage]: action.data,
+        },
+      };
+
+    case "error":
+      return {
+        ...state,
+        error: action.message,
+      };
+
+    default:
+      throw new Error("Unknown action in popularReducer");
+  }
+};
+
+export default function Popular() {
+  const [selectedLanguage, setSelectedLanguage] = useState("All");
+
+  const [{ repos, error }, dispatch] = useReducer(popularReducer, {
+    repos: {},
+    error: null,
+  });
+
+  useEffect(() => {
+    if (!repos[selectedLanguage]) {
+      fetchPopularRepos(selectedLanguage)
+        .then((data) => {
+          dispatch({
+            type: "success",
+            selectedLanguage,
+            data,
+          });
+        })
+        .catch((error) => {
+          console.warn("Error fetching repos ", error);
+
+          dispatch({
+            type: "error",
+            message: "There was an error fetching the repositories",
+          });
+        });
+    }
+  }, [selectedLanguage]);
+
+  const isLoading = () => {
+    return !repos[selectedLanguage] && error === null;
+  };
+
+  return (
+    <>
+      <LanguagesNav
+        selected={selectedLanguage}
+        onUpdateLanguage={(sel) => setSelectedLanguage(sel)}
+      />
+
+      {isLoading() && <Loading text="Fetching Repos" />}
+
+      {error && <p className="center-text error">{error}</p>}
+
+      {repos[selectedLanguage] && <ReposGrid repos={repos[selectedLanguage]} />}
+    </>
+  );
+}
+
+/* 
 export default class Popular extends Component {
   state = {
     selectedLanguage: "All",
@@ -148,4 +220,5 @@ export default class Popular extends Component {
       </>
     );
   }
-}
+} 
+*/
