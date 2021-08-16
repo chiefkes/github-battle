@@ -30,7 +30,6 @@ export default class App extends Component {
           <div className={this.state.theme}>
             <div className="container">
               <NavBar />
-
               <React.Suspense fallback={Loading}>
                 <Switch>
                   <Route exact path="/" component={Popular} />
